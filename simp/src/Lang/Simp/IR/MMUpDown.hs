@@ -192,7 +192,7 @@ instance Cogen Stmt where
 
             lblEndWhile      <- chkNextLabel
             
-            let instrs1      = [(lblWhile, IIfNot cond_u lblEndWhile)]
+            let instrs1      = [(lblWhileCondJ, IIfNot cond_u lblEndWhile)]
                 instrs2'     = instrs2 ++ [(lblEndBody, IGoto lblWhile)]
             return $ cond_d ++ instrs1 ++ instrs2'
         }
