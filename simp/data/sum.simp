@@ -1,0 +1,8 @@
+x = input; 
+s = 0; 
+c = 0; 
+while c < x {  
+   s = c + s; 
+   c = c + 1; 
+} 
+return s;

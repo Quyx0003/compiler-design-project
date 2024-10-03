@@ -1,0 +1,107 @@
+cabal-version:      3.6
+name:               simp
+version:            0.1.0.0
+synopsis:           A simple language compiler for SUTD module 50.054 
+
+-- A longer description of the package.
+-- description:
+homepage:
+
+-- A URL where users can report bugs.
+-- bug-reports:
+license:            MIT
+license-file:       LICENSE
+author:             Kenny Zhuo Ming Lu
+maintainer:         kenny_lu@sutd.edu.sg
+
+-- A copyright notice.
+-- copyright:
+category:           Language
+extra-source-files: CHANGELOG.md
+
+
+library
+    exposed-modules:  Lang.Simp.Syntax.AST 
+                      Lang.Simp.Syntax.Lexer  
+                      Lang.Simp.Syntax.Parsec
+                      Lang.Simp.Syntax.Parser
+                      Lang.Simp.Syntax.SrcLoc
+                      Lang.Simp.Interpreter.PAInt
+                      Lang.Simp.Interpreter.SimpInt
+                      Lang.Simp.IR.PseudoAssembly
+                      Lang.Simp.IR.MaximalMunch
+                      Lang.Simp.IR.MMUpDown
+                      Lang.Simp.IR.Util
+                      Lang.Simp.IR.CFG
+                      Lang.Simp.IR.DF
+                      Lang.Simp.IR.SSA
+                      Lang.Simp.Lattice.CompleteLattice
+                      Lang.Simp.Lattice.SignLattice
+                      Lang.Simp.Semantics.TypeInf
+                      Lang.Simp.Semantics.SignAnalysis
+                      Lang.Simp.Semantics.LivenessAnalysis
+                      Lang.Simp.Backend.Wasm
+
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:    
+        base >=4.16.0.0, 
+        mtl,
+        bytestring,
+        text,
+        containers,
+        wasm >= 1.1.2
+    hs-source-dirs:   src
+    default-language: Haskell2010
+
+executable simp
+    main-is:          Main.hs
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+    build-depends:
+        base >=4.16.0.0, 
+        mtl,
+        wasm >= 1.1.2,
+        bytestring,
+        text,
+        containers,
+        simp
+    hs-source-dirs:   app
+    default-language: Haskell2010
+
+test-suite simp-test
+    default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Spec.hs
+    other-modules:    Lang.Simp.Syntax.LexerSpec
+                      Lang.Simp.Syntax.ParserSpec
+                      Lang.Simp.Interpreter.PAIntSpec
+                      Lang.Simp.Interpreter.SimpIntSpec
+                      Lang.Simp.IR.MaximalMunchSpec
+                      Lang.Simp.IR.MMUpDownSpec
+                      Lang.Simp.IR.CFGSpec
+                      Lang.Simp.IR.DFSpec
+                      Lang.Simp.IR.SSASpec
+                      Lang.Simp.Semantics.TypeInfSpec
+                      Lang.Simp.Semantics.SignAnalysisSpec
+                      Lang.Simp.Semantics.LivenessAnalysisSpec
+    build-depends:    
+        base >=4.16.0.0, 
+        hspec, 
+        mtl,
+        wasm == 1.1.2.50054,
+        bytestring,
+        text,
+        containers,
+        simp
+    build-tool-depends: hspec-discover:hspec-discover
+
