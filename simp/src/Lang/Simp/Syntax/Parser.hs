@@ -134,23 +134,23 @@ pSpaces = many pSpace
 
 -- Lab 1 Task 1.1 end 
 
-
 {-  Lab 1 Task 1.2 
     Parsing an expression
     Note that 
     E ::= E Op E | X | C | (E) contains left recursion
 -}
 
-
 -- | the `pExp` function parses an expression
 pExp :: Parser PEnv Exp
 pExp = pRel
 
+-- | `pRel` parses expressions that involve relational operators.
 pRel :: Parser PEnv Exp
 pRel = do
-    term <- pAddSub  -- Parse lower-precedence expressions first
+    term <- pAddSub
     pRel' term
 
+-- | `pRel'` keeps parsing after a term, looking for relational operators.
 pRel' :: Exp -> Parser PEnv Exp
 pRel' left = do
     pSpaces
