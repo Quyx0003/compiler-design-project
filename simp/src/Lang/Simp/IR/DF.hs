@@ -95,9 +95,9 @@ buildDomTree g n = case successors g n  of
                     t <- buildDomTree g2 k
                     return (Node n [s,t])
             []   -> do -- case 3 
-                    s <- buildDomTree g1 m 
-                    t <- buildDomTree g1 k 
-                    return (Node n [s,t])                
+                    s <- buildDomTree g1 m
+                    t <- buildDomTree g1 k
+                    return (Node n [s,t])
     _    -> Left ("buildDomTree failed. There are 3 successors for label " ++ show n ++ ".")
 
 
@@ -139,7 +139,9 @@ inOrderTrav (Node v children) = v : concatMap inOrderTrav children
 -- | df local implementation from cytron's lemma 2
 -- | Lab 3 Task 1.1 TODO 
 dfLocal :: Label -> DomTree -> CFG -> [Label]
-dfLocal = undefined -- fixme
+dfLocal v dt g =
+    let succs = successors g v
+    in  filter (\s -> not (isChildOf s v dt)) succs
 
 -- | Build Dominance frontier table
 buildDFT :: DomTree -> CFG -> DFTable
@@ -150,8 +152,8 @@ buildDFT dt g = foldl go DM.empty (postOrderTrav dt)
             let local  = dfLocal x dt g
                 -- Lab 3 Task 1.1. TODO
                 dfUp :: Label -> [Label]
-                dfUp = undefined -- fixme
-                up     = concatMap dfUp (childOf x dt)
+                dfUp u = DM.findWithDefault [] u acc
+                up     = concatMap (filter (\n -> not (isChildOf n x dt)) . dfUp) (childOf x dt)
             in  DM.insert x (sort (local ++ up)) acc
 -- Lab 3 Task 1.1 end 
 

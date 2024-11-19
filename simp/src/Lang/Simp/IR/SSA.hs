@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use tuple-section" #-}
 module Lang.Simp.IR.SSA where
 
 import qualified Data.Map as DM
@@ -48,15 +50,31 @@ insertPhis pa dft g =
         labelsModdedVars = map modVars pa
         -- Lab 3 Task 1.2 TODO 
         e :: E
-        e = undefined -- fixme
+        e = foldl
+            (\env (l, vars) ->
+                foldl
+                    (\env' var ->
+                        foldl
+                            (\env'' dfLabel ->
+                                DM.insertWith (\new old -> nub (new ++ old)) dfLabel [var] env''
+                            ) env' (dfPlus dft l)
+                    ) env vars
+            ) DM.empty labelsModdedVars
         -- Lab 3 Task 1.2 TODO 
         paWithPhis :: [SSALabeledInstr]
-        paWithPhis = map (\ (l,i) -> case DM.lookup l e of
-            { Nothing   -> (l, [], i)
-            ; Just vars ->
-                let phis = undefined -- fixme
+        paWithPhis = map
+            (\(l, i) ->
+                let phiVars = sort (DM.findWithDefault [] l e)
+                    preds = nub (predecessors g l)
+                    phis = map
+                        (\var ->
+                            PhiAssignment
+                                (Temp (AVar var))
+                                (map (\pred -> (pred, AVar var)) preds)
+                                (Temp (AVar var))
+                        ) phiVars
                 in (l, phis, i)
-            }) pa
+            ) pa
         -- Lab 3 Task 1.2 END
     in foldl (\acc (l, phis, i) -> DM.insert l (l, phis, i) acc) DM.empty paWithPhis
 
