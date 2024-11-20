@@ -66,11 +66,11 @@ genMonotoneFunction p =
         -- Cohort Problem 10 Exercise 3 TODO 
         -- ^ case l: t <- src1 op src2:  s_l = join(s_l)[t -> join(s_l)(src1) abs(op) join(s_l)(src1)]
         -- ^ other cases: s_l = join(s_l)
-        instrState acc (label, _) = undefined -- fixme     
+        instrState acc (label, _) = 
+            let joinedPredsStates = joinPredStates label acc
+            in return $ DM.insert label joinedPredsStates acc 
         -- Cohort Problem 10 Exercise 3 END 
     in \absEnv -> foldM instrState absEnv p
-
-
 
 -- | abstraction of binary operator +
 -- | ++ | $\top$ | + | - | 0 | $\bot$ | 

@@ -243,69 +243,35 @@ convertInstr m (li:lis) = case li of
 
     (l1, ILThan t s1 s2) -> case lis of
         (l2, IIfNot t l3):lis' ->
-            case lookup (l3-1) lis' of
-                Nothing -> error $ "convertInstr failed: the labels " ++ show (l3-1) ++ " " ++ show l3 ++ " are not continuous"
+            case lookup (l3 - 1) lis' of
+                Nothing -> error $ "convertInstr failed: the labels " ++ show (l3 - 1) ++ " " ++ show l3 ++ " are not continuous"
 
                 -- Lab 3 Task 3
-                {-        
-                        (l3-1):goto l4 \in lis'      l4 == l1
-                        lis1, lis2 = split(l3, lis') 
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis1 => wis3        M|- lis2 => wis4
-                (wLThanLoop) -----------------------------------------------------------
-                        M |- l1: t <- s1 < s2; l2 ; ifn t goto l3; lis' => 
-                            wis1 + wis2 + [ lt, if { loop { wis3 + wis1 + wis2 + [ lt; brIf 0] } } else { nop } ] + wis4
-                
-                  in fold form       
-                        (l3-1):goto l4 \in lis'      l4 == l1
-                        lis1, lis2 = split(l3, lis') 
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis1 => wis3      M|- lis2 => wis4
-                (wLThanLoop) -----------------------------------------------------------
-                        M |- l1: t <- s1 < s2; l2 ; ifn t goto l3; lis' => 
-                            [ if (wis1 `lt` wis2) { loop { wis3;  wis1 `lt` wis 2; brIf 0 } } else { nop } ] + wis4
-                -}
+                -- Handle the loop case where `l4 == l1`
                 Just (IGoto l4) | l4 == l1 -> case splitAtLbl l3 lis' of
-                    (lis1, lis2) -> undefined -- fixme 
-                {-        
-                        (l3-1):goto l4 \in lis'      l4 /= l1
-                        lis1, lis2 = split(l3, lis') 
-                        lis3, lis4 = split(l4, lis2)
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis1 => wis3        M |- lis3 => wis4   M |- lis4 => wis5
-                (wLThanIf) -----------------------------------------------------------
-                        M |- l1: t <- s1 < s2; l2 ; ifn t goto l3; lis' => 
-                            wis1 + wis2 + [ lt, if { wis3 } else { wis4 } ] + wis5
-                
-                 in fold form       
-                        (l3-1):goto l4 \in lis'      l4 /= l1
-                        lis1, lis2 = split(l3, lis') 
-                        is3, lis4 = split(l4, lis2)
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis1 => wis3        M |- lis3 => wis4   M |- lis4 => wis5
-                (wLThanIf) -----------------------------------------------------------
-                        M |- l1: t <- s1 < s2; l2 ; ifn t goto l3; lis' => 
-                            [ if (wis1 `lt` wis2) { wis3 } else { wis4 } ] + wis5
-                -}
-                                | otherwise -> undefined -- fixme 
-                -- Lab 3 Task 3 end                 
-                Just _ -> error $ "convertInstr failed: the labeled instruction before the else branch " ++ show (l3-1) ++  "is not a goto."
-                {-         
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis' => wis3        
-                        head(lis') is not an ifn instruction.
-                (wLThan) -----------------------------------------------------------
-                        M |- l: t <- s1 < s2; lis' =>  wis1 + wis2 + [ lt ] + wis3
-                
-                in fold form       
-                        M |-_{src} s1 => wis1    M |-_{src} s2 => wis2  
-                        M |- lis => wis3        
-                        head(lis) is not an ifn instruction.
-                (wLThan) -----------------------------------------------------------
-                        M |- l: t <- s1 < s2; lis =>  wis1 `lt` wis2 + wis3                -}
+                    (lis1, lis2) -> do
+                        -- Emit a `while` loop
+                        while (convertSrcOpr m s1 `lt_s` convertSrcOpr m s2) $ do
+                            void $ convertInstr m lis1
+                        convertInstr m lis2
+
+                -- Handle the if-else case where `l4 /= l1`
+                Just (IGoto l4) -> case splitAtLbl l3 lis' of
+                    (lis1, lis2) -> case splitAtLbl l4 lis2 of
+                        (lis3, lis4) -> do
+                            -- Emit an `if` block
+                            if' () (convertSrcOpr m s1 `lt_s` convertSrcOpr m s2)
+                                (do { convertInstr m lis1; return () })  -- Then branch
+                                (do { convertInstr m lis3; return () }) -- Else branch
+                            convertInstr m lis4
+
+                -- Error if no valid `goto` instruction is found
+                _ -> error $ "convertInstr failed: the labeled instruction before the else branch " ++ show (l3 - 1) ++ " is not a goto."
+
+        -- Default behavior if the next instruction is not `IIfNot`
         _ -> do
-            convertSrcOpr m s1 `lt_s` convertSrcOpr m s2
-            convertInstr m lis 
+            convertDstOpr m t .= convertSrcOpr m s1 `lt_s` convertSrcOpr m s2
+            convertInstr m lis
 
 
     {-         

@@ -11,6 +11,19 @@ data SignAbsVal = Bot   -- ^ _|_
 
 -- Cohort Problem 10 Exercise 2
 instance CompleteLattice SignAbsVal where 
-    sqSubsetEq = undefined -- fixme 
-    lub = undefined -- fixme 
+    sqSubsetEq Bot _ = True
+    sqSubsetEq _ Top = True
+    sqSubsetEq Minus Minus = True
+    sqSubsetEq Plus Plus = True
+    sqSubsetEq Zero Zero = True
+    sqSubsetEq _ _ = False
+
+    lub Bot x = x
+    lub x Bot = x
+    lub Top _ = Top
+    lub _ Top = Top
+    lub Minus Minus = Minus
+    lub Plus Plus = Plus
+    lub Zero Zero = Zero
+    lub _ _ = Top
 -- Cohort Problem 10 Exercise 2 End
